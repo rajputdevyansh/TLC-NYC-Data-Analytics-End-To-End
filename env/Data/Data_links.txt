@@ -1,9 +1,0 @@
-Drive links for yearly parquet files
-
-Yellow Taxi Trip Data
-
-2021 :- https://drive.google.com/file/d/1N-tb4R5vDx4mO2Ap0T8ADmQgNcl6XmSA/view?usp=sharing
-
-2022 :- https://drive.google.com/file/d/1EHcjV-LfepW0dRjdByXFbfnwjOU4G_bn/view?usp=sharing
-
-2023 :- https://drive.google.com/file/d/1w43dpjnydyNOU8P0e9AA5HnYH89a1IP1/view?usp=sharing
