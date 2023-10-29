@@ -23,5 +23,5 @@ sudo pip3 install google-cloud
 
 sudo pip3 install google-cloud-bigquery
 
-
+# Mage Start Command
 mage start tlc_nyc_project
