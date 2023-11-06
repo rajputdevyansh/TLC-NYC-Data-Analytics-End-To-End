@@ -21,7 +21,6 @@ def transform(df, *args, **kwargs):
         Anything (e.g. data frame, dictionary, array, int, str, etc.)
     """
     # Specify your transformation logic here
-    df['trip_id'] = df.index
     
     df['tpep_pickup_datetime'] = pd.to_datetime(df['tpep_pickup_datetime'])
     df['tpep_dropoff_datetime'] = pd.to_datetime(df['tpep_dropoff_datetime'])
@@ -64,21 +63,14 @@ def transform(df, *args, **kwargs):
     rate_code_dim['rate_code_name'] = rate_code_dim['RatecodeID'].map(rate_code_type)
     rate_code_dim = rate_code_dim[['rate_code_id','RatecodeID','rate_code_name']]
 
-    # Reading zones data
-    zones_path="https://storage.googleapis.com/tlc-nyc-data-analytics/zones.csv"
-    zonedf=pd.read_csv(zones_path)
-    # Creating a new dataframe for the pick-up location dimension table
-    pickup_location_dim = pd.merge(df[['PULocationID']], zonedf[['LocationID','Borough', 'Zone']], left_on='PULocationID', right_on='LocationID', how='inner')
-    pickup_location_dim=pickup_location_dim.drop(['LocationID'],axis=1)
+    pickup_location_dim = df[['pickup_longitude', 'pickup_latitude']].drop_duplicates().reset_index(drop=True)
     pickup_location_dim['pickup_location_id'] = pickup_location_dim.index
-    pickup_location_dim = pickup_location_dim.rename(columns={'Borough': 'pickup_borough', 'Zone': 'pickup_zone'})
-    pickup_location_dim = pickup_location_dim[['pickup_location_id','PULocationID','pickup_borough','pickup_zone']]
-    # Creating a new dataframe for the drop-off location dimension table
-    dropoff_location_dim = pd.merge(df[['DOLocationID']], zonedf[['LocationID','Borough', 'Zone']], left_on='DOLocationID', right_on='LocationID', how='inner')
-    dropoff_location_dim=dropoff_location_dim.drop(['LocationID'],axis=1)
+    pickup_location_dim = pickup_location_dim[['pickup_location_id','pickup_latitude','pickup_longitude']] 
+
+
+    dropoff_location_dim = df[['dropoff_longitude', 'dropoff_latitude']].drop_duplicates().reset_index(drop=True)
     dropoff_location_dim['dropoff_location_id'] = dropoff_location_dim.index
-    dropoff_location_dim = dropoff_location_dim.rename(columns={'Borough': 'drop_borough', 'Zone': 'drop_zone'})
-    dropoff_location_dim = dropoff_location_dim[['dropoff_location_id','DOLocationID','drop_borough','drop_zone']]
+    dropoff_location_dim = dropoff_location_dim[['dropoff_location_id','dropoff_latitude','dropoff_longitude']]
 
     payment_type_name = {
         1:"Credit card",
@@ -93,44 +85,27 @@ def transform(df, *args, **kwargs):
     payment_type_dim['payment_type_name'] = payment_type_dim['payment_type'].map(payment_type_name)
     payment_type_dim = payment_type_dim[['payment_type_id','payment_type','payment_type_name']]
 
-    # Creating a new dataframe for the vendor id dimension table
-    vender_id_name = {
-        1:"Creative Mobile Technologies LLC",
-        2:"VeriFone Inc"
-        }
-    vendor_id_dim = df[['VendorID']].reset_index(drop=True)
-    vendor_id_dim['vendor_din_id'] = vendor_id_dim.index
-    vendor_id_dim['vendor_name'] = vendor_id_dim['VendorID'].map(vender_id_name)
-    vendor_id_dim = vendor_id_dim[['vendor_din_id','VendorID','vendor_name']]
+    fact_table = df.merge(passenger_count_dim, on='passenger_count') \
+             .merge(trip_distance_dim, on='trip_distance') \
+             .merge(rate_code_dim, on='RatecodeID') \
+             .merge(pickup_location_dim, on=['pickup_longitude', 'pickup_latitude']) \
+             .merge(dropoff_location_dim, on=['dropoff_longitude', 'dropoff_latitude'])\
+             .merge(datetime_dim, on=['tpep_pickup_datetime','tpep_dropoff_datetime']) \
+             .merge(payment_type_dim, on='payment_type') \
+             [['VendorID', 'datetime_id', 'passenger_count_id',
+               'trip_distance_id', 'rate_code_id', 'store_and_fwd_flag', 'pickup_location_id', 'dropoff_location_id',
+               'payment_type_id', 'fare_amount', 'extra', 'mta_tax', 'tip_amount', 'tolls_amount',
+               'improvement_surcharge', 'total_amount']]
 
-    # Creating a new dataframe for the fare amount dimension table
-    fare_amount_dim = df[['fare_amount','extra','mta_tax','tip_amount','tolls_amount','improvement_surcharge','congestion_surcharge','airport_fee','total_amount']].reset_index(drop=True)
-    fare_amount_dim['fare_id'] = fare_amount_dim.index
-    fare_amount_dim = fare_amount_dim[['fare_id','fare_amount','extra','mta_tax','tip_amount','tolls_amount','improvement_surcharge','congestion_surcharge','airport_fee','total_amount']]
-
-    # Creating a new dataframe for the fact table
-    fact_table = df.merge(vendor_id_dim, left_on='trip_id', right_on='vendor_din_id')\
-                .merge(datetime_dim, left_on='trip_id', right_on='datetime_id')\
-                .merge(passenger_count_dim, left_on='trip_id', right_on='passenger_count_id')\
-                .merge(trip_distance_dim, left_on='trip_id', right_on='trip_distance_id')\
-                .merge(rate_code_dim, left_on='trip_id', right_on='rate_code_id')\
-                .merge(payment_type_dim, left_on='trip_id', right_on='payment_type_id')\
-                .merge(fare_amount_dim, left_on='trip_id', right_on='fare_id')\
-                .merge(pickup_location_dim, left_on='trip_id', right_on='pickup_location_id') \
-                .merge(dropoff_location_dim, left_on='trip_id', right_on='dropoff_location_id')\
-                [['trip_id', 'vendor_din_id','datetime_id','passenger_count_id','trip_distance_id','rate_code_id','payment_type_id','fare_id',
-                  'store_and_fwd_flag', 'pickup_location_id', 'dropoff_location_id']]
-    print(fact_table)
-    return {"vendor_id_dim": vendor_id_dim.to_dict(orient="dict"),
-    "datetime_dim":datetime_dim.to_dict(orient="dict"),
+    return {"datetime_dim":datetime_dim.to_dict(orient="dict"),
     "passenger_count_dim":passenger_count_dim.to_dict(orient="dict"),
     "trip_distance_dim":trip_distance_dim.to_dict(orient="dict"),
     "rate_code_dim":rate_code_dim.to_dict(orient="dict"),
-    "payment_type_dim":payment_type_dim.to_dict(orient="dict"),
-    "fare_amount_dim":fare_amount_dim.to_dict(orient="dict"),
     "pickup_location_dim":pickup_location_dim.to_dict(orient="dict"),
     "dropoff_location_dim":dropoff_location_dim.to_dict(orient="dict"),
+    "payment_type_dim":payment_type_dim.to_dict(orient="dict"),
     "fact_table":fact_table.to_dict(orient="dict")}
+
 
 @test
 def test_output(output, *args) -> None:

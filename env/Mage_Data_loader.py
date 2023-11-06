@@ -12,7 +12,7 @@ def load_data_from_api(*args, **kwargs):
     """
     Template for loading data from API
     """
-    url = 'https://storage.googleapis.com/tlc-nyc-data-analytics/yellow_tripdata_2023.csv'
+    url = 'https://storage.googleapis.com/tlc-nyc-data-analytics/tlc_nyc_ride_data.csv'
     response = requests.get(url)
 
     return pd.read_csv(io.StringIO(response.text), sep=',')
