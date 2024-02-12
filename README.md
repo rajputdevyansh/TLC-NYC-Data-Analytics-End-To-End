@@ -7,25 +7,17 @@
 [Live Preview](https://lookerstudio.google.com/reporting/9f51c0b3-8ff7-4e7f-a9a8-a8a2d2c93dc1)
 ## Screenshots
 
-### Atliq Hardware Insights Dashboard
+### NYC TLC Dashboard
 
 ![App Screenshot](https://github.com/rajputdevyansh/Sales-Insights-FMCG-Industry/blob/main/Sales_Insights_Data_Analysis/Demos/Atliq_Hardware_Insights_Dashboard.png?raw=true )
 
-### Key Insights Dashboard
-
-![App Screenshot](https://github.com/rajputdevyansh/Sales-Insights-FMCG-Industry/blob/main/Sales_Insights_Data_Analysis/Demos/Key_Insights_Dashboard.png?raw=true )
-
-### Profit Insights Dashboard
-
-![App Screenshot](https://github.com/rajputdevyansh/Sales-Insights-FMCG-Industry/blob/main/Sales_Insights_Data_Analysis/Demos/Performance_Insights_Dashboard.png?raw=true )
-
-### Performance Insights Dashboard
-
-![App Screenshot](https://github.com/rajputdevyansh/Sales-Insights-FMCG-Industry/blob/main/Sales_Insights_Data_Analysis/Demos/Profit_Insights_Dashboard.png?raw=true )
-
 ## 🛠 Skills
 
-### SQL, Excel, PowerBI
+### Python (Pandas),
+SQL (BigQuery),
+Looker Studio,
+GCP (Engine),
+Mage AI (ETL Tool)
 
 ## Documentation
 
